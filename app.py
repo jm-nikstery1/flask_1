@@ -10,6 +10,14 @@ from functools import wraps
 from flask_cors import CORS
 import bcrypt
 import jwt
+"""
+# pyjwt 1.7대에서 2.0대로 바뀌면서 jwt.decode(access_token, current_app.config["JWT_SECRET_KEY"], algorithms="HS256")
+jwt.encode과 jwt.decode 
+algorithm과 algorithms 이 필수로 들어가야함
+참고로 encode의 algorithm은 단수형
+decode의 algorithms은 복수형
+
+"""
 
 # 참고로 데이터베이스를 활성화 하기전에는 데이터가 램에 저장된 상태라서 - 파일을 수정후 저장하면 항상 초기화가 된다
 ## Default JSON encoder는 set를 JSON으로 변환할 수 없다
@@ -127,7 +135,7 @@ def login_required(f):
         access_token = request.headers.get('Authorization')
         if access_token is not None:
             try:
-                payload = jwt.decodoe(access_token, current_app.config["JWT_SECRET_KEY"], "HS256")
+                payload = jwt.decode(access_token, current_app.config["JWT_SECRET_KEY"], algorithms="HS256")
             except jwt.InvalidTokenError:
                 payload = None
 
@@ -189,7 +197,7 @@ def create_app(test_config = None):
                 "user_id" : user_id,
                 "exp" : datetime.utcnow() + timedelta(seconds= 60 * 60 * 24)
             }
-            token = jwt.encode(payload, app.config["JWT_SECRET_KEY"], "HS256")
+            token = jwt.encode(payload, app.config["JWT_SECRET_KEY"], algorithm="HS256")
 
             return jsonify({
                 "access_token" : token.encode().decode("UTF-8")   # UTF-8인 str에서 decode는 필요없다, 그래서 encode().decode()를 함
